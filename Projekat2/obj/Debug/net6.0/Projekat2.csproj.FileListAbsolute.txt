@@ -1,0 +1,15 @@
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\bin\Debug\net6.0\Projekat2.exe
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\bin\Debug\net6.0\Projekat2.deps.json
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\bin\Debug\net6.0\Projekat2.runtimeconfig.json
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\bin\Debug\net6.0\Projekat2.dll
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\bin\Debug\net6.0\Projekat2.pdb
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\Projekat2.csproj.AssemblyReference.cache
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\Projekat2.GeneratedMSBuildEditorConfig.editorconfig
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\Projekat2.AssemblyInfoInputs.cache
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\Projekat2.AssemblyInfo.cs
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\Projekat2.csproj.CoreCompileInputs.cache
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\Projekat2.dll
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\refint\Projekat2.dll
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\Projekat2.pdb
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\Projekat2.genruntimeconfig.cache
+D:\ELFAK\SistemskoProgramiranje\Projekat2\Projekat2\obj\Debug\net6.0\ref\Projekat2.dll
