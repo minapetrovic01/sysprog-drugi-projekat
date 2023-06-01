@@ -180,3 +180,101 @@ VALID=WRONG EXTENSION
 
 
 -------------------------
+
+NEW REQUEST
+Requested filename is:
+VALID=NO FILE NAME OR EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:favicon.ico
+VALID=WRONG EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:mina
+VALID=NO FILE NAME OR EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:favicon.ico
+VALID=WRONG EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:mina.g
+VALID=WRONG EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:favicon.ico
+VALID=WRONG EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:mina.txt
+VALID=OK
+FILE NOT FOUND IN DIRECTORY
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:favicon.ico
+VALID=WRONG EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:mina.bin
+VALID=OK
+FILE NOT FOUND IN DIRECTORY
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:favicon.ico
+VALID=WRONG EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:mina.m
+VALID=WRONG EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:favicon.ico
+VALID=WRONG EXTENSION
+
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:test1.txt
+VALID=OK
+TRANSLATED TO .bin
+
+-------------------------
+
+NEW REQUEST
+Requested filename is:favicon.ico
+VALID=WRONG EXTENSION
+
+
+-------------------------

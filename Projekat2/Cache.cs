@@ -43,7 +43,7 @@ namespace Projekat2
                 LinkedListNode<string> newNode = _currentList.AddFirst(key);
                 _cache[key] = newNode;
             }
-            catch (Exception e)
+            catch
             {
                 //ne radimo nista kada ne uspe da ga doda u cache, najbrze je da se ide dalje
             }

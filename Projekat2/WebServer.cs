@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Net.Mail;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -27,11 +28,11 @@ namespace Projekat2
             _cachedFilesPath = cachedPath;
         }
 
-        public void Run()
+        public async Task Run()
         {
             using (HttpListener listener = new HttpListener())
             {
-                string urlListener = _url + $":{_port}/";
+                string urlListener = $"{_url}:{_port}/";
                 listener.Prefixes.Add(urlListener);
                 listener.Start();
 
@@ -39,168 +40,172 @@ namespace Projekat2
 
                 while (listener.IsListening)
                 {
-
-                    HttpListenerContext context = listener.GetContext();
-
-
-                    ThreadPool.QueueUserWorkItem((object listenerContext) =>
-                    {
-                        string toLog = "";
-                        try
-                        {
-
-                            HttpListenerContext httpListenerContext = (HttpListenerContext)listenerContext;
-                            if (httpListenerContext == null)
-                                throw new Exception("Can't parse given object to HttpListenerContext object!");
-                            string fileName = Path.GetFileName(httpListenerContext.Request.Url.LocalPath);
-                            string fileExtension = Path.GetExtension(fileName).TrimStart('.');
-                            // Console.WriteLine(fileName+" "+fileExtension);
-                            toLog += ($"\nNEW REQUEST\nRequested filename is:{fileName}\n");
-
-                            string validation = this.ValidateRequest(httpListenerContext, fileName, fileExtension);
-
-                            toLog += "VALID=" + validation + "\n";
-
-                            if (validation != "OK")
-                            {
-                                this.SendResponse(httpListenerContext, validation, false);
-                                return;
-                            }
-
-                            if (_cache.Contains(fileName))
-                            {
-                                toLog += "FILE WAS ALREADY TRANSLATED AND IN CACHE\n";
-                                this.SendResponse(httpListenerContext, $"FILE{fileName} is translated", true);
-                                return;
-                            }
-
-                            string[] files = Directory.GetFiles(_rootDirPath, fileName);
-                            if (files.Length == 0)
-                            {
-                                toLog += "FILE NOT FOUND IN DIRECTORY";
-                                this.SendResponse(httpListenerContext, "NO SUCH FILE IN ROOT DIR", false);
-                                return;
-                            }
-
-                            string toTranslate = files[0];
-                            string newFileName = Path.GetFileNameWithoutExtension(fileName);
-
-                            
-
-                            byte[] fileBytes;
-                            using (FileStream fs = new FileStream(toTranslate, FileMode.Open, FileAccess.Read, FileShare.Read))
-                            {
-                                fileBytes = new byte[fs.Length];
-                                int bytesRead = fs.Read(fileBytes, 0, fileBytes.Length);
-                                if (bytesRead != fileBytes.Length)
-                                {
-                                    throw new IOException("Could not read the whole file");
-                                }
-                            }
-                            if (fileBytes.Length <= 0)
-                            {
-                                toLog += "FILE IS EMPTY";
-                                this.SendResponse(httpListenerContext, "FILE IS EMPTY", false);
-                                return;
-                            }
-
-
-                            if (fileExtension == "txt")
-                            {
-                                newFileName += ".bin";
-                                string filePath = _cachedFilesPath + "/" + newFileName;
-                                object fileLock;
-
-                                lock (_lockLock)
-                                {
-                                    if (!_fileLocks.TryGetValue(filePath, out fileLock))
-                                    {
-                                        fileLock = new object();
-                                        _fileLocks.Add(filePath, fileLock);
-                                    }
-                                }
-
-                                lock (fileLock)
-                                {
-                                    File.WriteAllBytes(filePath, fileBytes);
-                                }
-                                _cache.Add(fileName);
-                                toLog += "TRANSLATED TO .bin";
-                                this.SendResponse(httpListenerContext, "TRANSLATED TO .bin", true);
-                                return;
-                            }
-                            else
-                            {
-                                newFileName += ".txt";
-                                string filePath = _cachedFilesPath + "/" + newFileName;
-                                object fileLock;
-                                string text = Encoding.UTF8.GetString(fileBytes);
-
-                                lock (_lockLock)
-                                {
-                                    if (!_fileLocks.TryGetValue(filePath, out fileLock))
-                                    {
-                                        fileLock = new object();
-                                        _fileLocks.Add(filePath, fileLock);
-                                    }
-                                }
-
-                                lock (fileLock)
-                                {
-                                    File.WriteAllText(filePath, text);
-                                }
-                                _cache.Add(fileName);
-                                toLog += "TRANSLATED TO .txt";
-                                this.SendResponse(httpListenerContext, "TRANSLATED TO .txt", true);
-                                return;
-
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            lock (_lock)
-                            {
-                                Console.WriteLine(e.ToString());
-                                using (StreamWriter sw = File.AppendText("../../../logFile.txt"))
-                                {
-                                    sw.WriteLine(toLog+'\n');
-                                    sw.WriteLine("-------------------------");
-                                }
-                                this.WriteBreakLine();
-                            }
-                        }
-                        finally
-                        {
-                            lock (_lock)
-                            {
-                                if(toLog!="")
-                                {
-                                    Console.WriteLine($"\n{toLog}\n");
-                                    using (StreamWriter sw = File.AppendText("../../../logFile.txt"))
-                                    {
-                                        sw.WriteLine(toLog + '\n');
-                                        sw.WriteLine("-------------------------");
-                                    }
-                                }
-                                
-                                this.WriteBreakLine();
-                            }
-                        }
-                    }, context);
+                    HttpListenerContext context =await listener.GetContextAsync();
+                    _ = ProcessRequestAsync(context);
                 }
             }
         }
 
-        private void SendResponse(HttpListenerContext context, string content, bool isOK)
+        private async Task ProcessRequestAsync(HttpListenerContext context)
+        {
+            string toLog = "";
+
+            try
+            {
+
+                HttpListenerContext httpListenerContext = (HttpListenerContext)context;
+                if (httpListenerContext == null)
+                    throw new Exception("Can't parse given object to HttpListenerContext object!");
+                string fileName = Path.GetFileName(httpListenerContext.Request.Url.LocalPath);
+                string fileExtension = Path.GetExtension(fileName).TrimStart('.');
+                // Console.WriteLine(fileName+" "+fileExtension);
+                toLog += ($"\nNEW REQUEST\nRequested filename is:{fileName}\n");
+
+                string validation = this.ValidateRequest(httpListenerContext, fileName, fileExtension);
+
+                toLog += "VALID=" + validation + "\n";
+
+                if (validation != "OK")
+                {
+                    await this.SendResponse(httpListenerContext, validation, false,false);
+                    return;
+                }
+
+                if (_cache.Contains(fileName))
+                {
+                    toLog += "FILE WAS ALREADY TRANSLATED AND IN CACHE\n";
+                    await this.SendResponse(httpListenerContext, $"FILE{fileName} is translated", true,false);
+                    return;
+                }
+
+                string[] files = Directory.GetFiles(_rootDirPath, fileName);
+                if (files.Length == 0)
+                {
+                    toLog += "FILE NOT FOUND IN DIRECTORY";
+                    await this.SendResponse(httpListenerContext, "NO SUCH FILE IN ROOT DIR", false, true);
+                    return;
+                }
+
+                string toTranslate = files[0];
+                string newFileName = Path.GetFileNameWithoutExtension(fileName);
+
+
+
+                byte[] fileBytes;
+                using (FileStream fs = new FileStream(toTranslate, FileMode.Open, FileAccess.Read, FileShare.Read))
+                {
+                    fileBytes = new byte[fs.Length];
+                    int bytesRead = fs.Read(fileBytes, 0, fileBytes.Length);
+                    if (bytesRead != fileBytes.Length)
+                    {
+                        throw new IOException("Could not read the whole file");
+                    }
+                }
+                if (fileBytes.Length <= 0)
+                {
+                    toLog += "FILE IS EMPTY";
+                    await this.SendResponse(httpListenerContext, "FILE IS EMPTY", false, false);
+                    return;
+                }
+
+
+                if (fileExtension == "txt")
+                {
+                    newFileName += ".bin";
+                    string filePath = _cachedFilesPath + "/" + newFileName;
+                    object fileLock;
+
+                    lock (_lockLock)
+                    {
+                        if (!_fileLocks.TryGetValue(filePath, out fileLock))
+                        {
+                            fileLock = new object();
+                            _fileLocks.Add(filePath, fileLock);
+                        }
+                    }
+
+                    lock (fileLock)
+                    {
+                         File.WriteAllBytesAsync(filePath, fileBytes);
+                    }
+                    _cache.Add(fileName);
+                    toLog += "TRANSLATED TO .bin";
+                    await this.SendResponse(httpListenerContext, "TRANSLATED TO .bin", true, false);
+                    return;
+                }
+                else
+                {
+                    newFileName += ".txt";
+                    string filePath = _cachedFilesPath + "/" + newFileName;
+                    object fileLock;
+                    string text = Encoding.UTF8.GetString(fileBytes);
+
+                    lock (_lockLock)
+                    {
+                        if (!_fileLocks.TryGetValue(filePath, out fileLock))
+                        {
+                            fileLock = new object();
+                            _fileLocks.Add(filePath, fileLock);
+                        }
+                    }
+
+                    lock (fileLock)
+                    {
+                        File.WriteAllTextAsync(filePath, text);
+                    }
+                    _cache.Add(fileName);
+                    toLog += "TRANSLATED TO .txt";
+                    await this.SendResponse(httpListenerContext, "TRANSLATED TO .txt", true, false);
+                    return;
+
+                }
+            }
+            catch (Exception e)
+            {
+                lock (_lock)
+                {
+                    Console.WriteLine(e.ToString());
+                    using (StreamWriter sw = File.AppendText("../../../logFile.txt"))
+                    {
+                        sw.WriteLine(toLog + '\n');
+                        sw.WriteLine("-------------------------");
+                    }
+                    this.WriteBreakLine();
+                }
+            }
+            finally
+            {
+                lock (_lock)
+                {
+                    if (toLog != "")
+                    {
+                        Console.WriteLine($"\n{toLog}\n");
+                        using (StreamWriter sw = File.AppendText("../../../logFile.txt"))
+                        {
+                            sw.WriteLine(toLog + '\n');
+                            sw.WriteLine("-------------------------");
+                        }
+                    }
+
+                    this.WriteBreakLine();
+                }
+            }
+
+        }
+
+        private async Task SendResponse(HttpListenerContext context, string content, bool isOK,bool notFound)
         {
             HttpListenerResponse response = context.Response;
             string responseString = $"<html><body><h1>{content}</h1></body></html>";
             byte[] buffer = System.Text.Encoding.UTF8.GetBytes(responseString);
             try
             {
-                response.StatusCode = isOK ? (int)HttpStatusCode.OK : (int)HttpStatusCode.BadRequest;
+                if( notFound )
+                    response.StatusCode = (int)HttpStatusCode.NotFound;
+                else
+                    response.StatusCode = isOK ? (int)HttpStatusCode.OK : (int)HttpStatusCode.BadRequest;
                 response.ContentLength64 = buffer.Length;
-                response.OutputStream.Write(buffer, 0, buffer.Length);
+                await response.OutputStream.WriteAsync(buffer, 0, buffer.Length);
             }
             catch (Exception e)
             {
